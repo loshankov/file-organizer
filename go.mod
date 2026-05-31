@@ -1,3 +1,3 @@
-module example.com/m
+module file-organizer
 
 go 1.22.12
