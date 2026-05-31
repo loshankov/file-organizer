@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 var DefaultRules = map[string]string{
 	".jpg":  "Images",
@@ -18,8 +21,36 @@ var DefaultRules = map[string]string{
 	".rar":  "Archives",
 }
 
-func main() {
-	for ext, directory := range DefaultRules {
-		fmt.Printf("Расширение: %s -> Папка: %s\n", ext, directory)
+type FileOrganizer struct {
+	sourceDir      string
+	rulesMap       map[string]string
+	processedFiles int
+	logFile        *os.File
+}
+
+func NewFileOrganizer(sourceDir string) (*FileOrganizer, error) {
+	if sourceDir == "" {
+		return nil, fmt.Errorf("sourceDir is empty")
 	}
+	fileInfo, err := os.Stat(sourceDir)
+	if err != nil {
+		return nil, fmt.Errorf("path not found: %w", err)
+	}
+	if !fileInfo.IsDir() {
+		return nil, fmt.Errorf("path is not directory")
+	}
+
+	return &FileOrganizer{
+		sourceDir: sourceDir,
+		rulesMap:  DefaultRules,
+	}, nil
+}
+
+func main() {
+	sourceDir := ".test"
+	_, err := NewFileOrganizer(sourceDir)
+	if err != nil {
+		fmt.Printf("Ошибка: %s", err)
+	}
+	fmt.Printf("FileOrganizer создан для директори: %s\n", sourceDir)
 }
