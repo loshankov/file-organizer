@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -46,11 +47,34 @@ func NewFileOrganizer(sourceDir string) (*FileOrganizer, error) {
 	}, nil
 }
 
-func main() {
-	sourceDir := ".test"
-	_, err := NewFileOrganizer(sourceDir)
+func (fo *FileOrganizer) initLog() error {
+	file, err := os.OpenFile("organizer.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	defer file.Close()
 	if err != nil {
-		fmt.Printf("Ошибка: %s", err)
+		return err
 	}
-	fmt.Printf("FileOrganizer создан для директори: %s\n", sourceDir)
+	fo.logFile = file
+	return nil
+}
+
+func (fo *FileOrganizer) logSuccess(message string) {
+	logMessage := fmt.Sprintf("[SUCCESS] %s", message)
+	log.SetOutput(fo.logFile)
+	log.Println(logMessage)
+}
+
+func (fo *FileOrganizer) logError(message string) {
+	logMessage := fmt.Sprintf("[ERROR] %s", message)
+	log.SetOutput(fo.logFile)
+	log.Println(logMessage)
+}
+
+func (fo *FileOrganizer) Close() error {
+	if err := fo.logFile.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func main() {
 }
