@@ -83,9 +83,11 @@ func (fo *FileOrganizer) moveFile(sourcePath string, targetDir string) error {
 	fileName := filepath.Base(sourcePath)
 	resultDirPath := filepath.Join(fo.sourceDir, targetDir)
 	if _, err := os.Stat(resultDirPath); err != nil {
+		fo.logError("directory not found, creating")
 		if err := os.MkdirAll(resultDirPath, 0750); err != nil {
+			fo.logError("error when create directory")
+			return fmt.Errorf("error when create directory: %s", err)
 		}
-		return fmt.Errorf("error when create directory: %s", err)
 	}
 	resultFilePath := filepath.Join(resultDirPath, fileName)
 
@@ -94,7 +96,10 @@ func (fo *FileOrganizer) moveFile(sourcePath string, targetDir string) error {
 		newFileName := fileNameWithoutExt + "_" + time.Now().Format("2006-01-02_15-04-05") + filepath.Ext(fileName)
 		resultFilePath = filepath.Join(resultDirPath, newFileName)
 	}
-	os.Rename(sourcePath, resultFilePath)
+	if err := os.Rename(sourcePath, resultFilePath); err != nil {
+		fo.logError("error when move file path")
+		return fmt.Errorf("error when move file path: %s", err)
+	}
 	fo.logSuccess("move completed")
 	return nil
 }
