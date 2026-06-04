@@ -89,9 +89,11 @@ func (fo *FileOrganizer) moveFile(sourcePath string, targetDir string) error {
 	}
 	resultFilePath := filepath.Join(resultDirPath, fileName)
 
-	fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-	newFileName := fileNameWithoutExt + "_" + time.Now().Format("2006-01-02_15-04-05") + filepath.Ext(fileName)
-	resultFilePath = filepath.Join(resultDirPath, newFileName)
+	if _, err := os.Stat(resultFilePath); err == nil {
+		fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+		newFileName := fileNameWithoutExt + "_" + time.Now().Format("2006-01-02_15-04-05") + filepath.Ext(fileName)
+		resultFilePath = filepath.Join(resultDirPath, newFileName)
+	}
 	os.Rename(sourcePath, resultFilePath)
 	fo.logSuccess("move completed")
 	return nil
