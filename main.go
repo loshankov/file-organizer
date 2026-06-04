@@ -84,18 +84,25 @@ func (fo *FileOrganizer) moveFile(sourcePath string, targetDir string) error {
 	resultDirPath := filepath.Join(fo.sourceDir, targetDir)
 	if _, err := os.Stat(resultDirPath); err != nil {
 		if err := os.MkdirAll(resultDirPath, 0750); err != nil {
-			fmt.Printf("error when create directory: %s", err)
 		}
+		return fmt.Errorf("error when create directory: %s", err)
 	}
 	resultFilePath := filepath.Join(resultDirPath, fileName)
-	if _, err := os.Stat(resultFilePath); err != nil {
-		fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-		newFileName := fileNameWithoutExt + "_" + time.Now().Format("2006-01-02_15-04-05") + filepath.Ext(fileName)
-		resultFilePath = filepath.Join(resultDirPath, newFileName)
-	}
+
+	fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	newFileName := fileNameWithoutExt + "_" + time.Now().Format("2006-01-02_15-04-05") + filepath.Ext(fileName)
+	resultFilePath = filepath.Join(resultDirPath, newFileName)
 	os.Rename(sourcePath, resultFilePath)
+	fo.logSuccess("move completed")
 	return nil
 }
 
 func main() {
+	fo, err := NewFileOrganizer("/home/user/messy_folder")
+	if err != nil {
+		fmt.Println(err)
+	}
+	if err := fo.moveFile("/home/user/messy_folder/photo.jpg", "Images"); err != nil {
+		fmt.Print(err)
+	}
 }
