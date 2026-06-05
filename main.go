@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -23,6 +24,7 @@ var DefaultRules = map[string]string{
 	".avi":  "Video",
 	".zip":  "Archives",
 	".rar":  "Archives",
+	".bmp":  "BMP",
 }
 
 type FileOrganizer struct {
@@ -104,12 +106,41 @@ func (fo *FileOrganizer) moveFile(sourcePath string, targetDir string) error {
 	return nil
 }
 
+func (fo *FileOrganizer) Organize() error {
+	err := filepath.WalkDir(fo.sourceDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return fmt.Errorf("no folder: %w", err)
+		}
+
+		if d.IsDir() || filepath.Dir(path) != fo.sourceDir {
+			return nil
+		}
+
+		ext := strings.ToLower(filepath.Ext(d.Name()))
+
+		if v, ok := fo.rulesMap[ext]; ok == true {
+			if err := fo.moveFile(path, v); err != nil {
+				return fmt.Errorf("error when move file: %w", err)
+			}
+			fo.processedFiles++
+			fo.logSuccess("file moved")
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("no folder: %w", err)
+	}
+	return nil
+}
+
 func main() {
 	fo, err := NewFileOrganizer("/home/user/messy_folder")
 	if err != nil {
 		fmt.Println(err)
 	}
-	if err := fo.moveFile("/home/user/messy_folder/photo.jpg", "Images"); err != nil {
-		fmt.Print(err)
+	err = fo.Organize()
+	if err != nil {
+		fmt.Println(err)
 	}
 }
